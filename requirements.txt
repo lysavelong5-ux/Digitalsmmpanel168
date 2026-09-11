@@ -1,0 +1,50 @@
+import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
+
+# មុខងារពេលអ្នកប្រើប្រាស់វាយពាក្យ /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # បង្កើតប៊ូតុងទាំង ៣
+    keyboard = [
+        [InlineKeyboardButton("👑 គណនី (Profile)", callback_data='profile')],
+        [InlineKeyboardButton("💼 Service Shop (Facebook / TikTok)", callback_data='services')],
+        [InlineKeyboardButton("💫 ទូរទាត់ប្រាក់ (Payment)", callback_data='payment')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # ផ្ញើសារស្វាគមន៍ជាមួយប៊ូតុងនៅខាងក្រោម
+    await update.message.reply_text(
+        "សួស្តី! សូមជ្រើសរើសជម្រើសខាងក្រោម៖",
+        reply_markup=reply_markup
+    )
+
+# មុខងារពេលអ្នកប្រើប្រាស់ចុចលើប៊ូតុងណាមួយ
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer() # បញ្ជាក់ថាបានទទួលការចុច
+    
+    data = query.data
+    
+    if data == 'profile':
+        user = query.from_user
+        text = f"👑 ព័ត៌មានគណនីរបស់អ្នក៖\n- ឈ្មោះ: {user.first_name}\n- Username: @{user.username if user.username else 'អត់មាន'}\n- ID: {user.id}\n- Balance: $0.00"
+        await query.message.reply_text(text)
+        
+    elif data == 'services':
+        text = "💼 សេវាកម្មរបស់យើងខ្ញុំ:\n- ផេក Facebook (Likes, Followers)\n- TikTok (Views, Followers, Likes)\nសូមទាក់ទងមកកាន់ admin ផ្ទាល់។"
+        await query.message.reply_text(text)
+        
+    elif data == 'payment':
+        await query.message.reply_text("💫 សូមស្កេន QR Code (Longzztopup) ដើម្បីទូរទាត់ប្រាក់។")
+
+if __name__ == '__main__':
+    # Token របស់អ្នក
+    TOKEN = "8833531005:AAGh021uWiW0m-w3n2BNZ3QIKd6MaLyO0fk"
+    
+    application = ApplicationBuilder().token(TOKEN).build()
+    
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CallbackQueryHandler(button_handler))
+    
+    print("Bot កំពុងដំណើរការ...")
+    application.run_polling()
